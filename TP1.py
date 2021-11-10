@@ -47,4 +47,12 @@ if __name__ == '__main__':
 
     print(f"Gaussian validation error: {nb_classifier(GaussianNB())}")
 
-    clf = SVC(kernel='rbf')
+    min_error = 1
+    best_gamma = -1
+    for gamma in np.linspace(0.2, 6, 30):
+        error = nb_classifier(SVC(gamma=gamma, kernel="rbf"))
+        if error < min_error:
+            min_error = error
+            best_gamma = gamma
+
+    print(f"SVM validation error: {min_error} with gamma: {best_gamma}")
