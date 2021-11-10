@@ -6,15 +6,24 @@ from sklearn.svm import SVC
 from sklearn.model_selection import StratifiedKFold
 
 
-def standardize(df):
-    return (df - df.mean()) / df.std()
+def load_data():
+    train_data = np.loadtxt("./TP1_train.tsv", delimiter="\t")
+    data_ = train_data[:, :-1]
+    mean = data_.mean()
+    std = data_.std()
+    standardize_and_shuffle(train_data, mean, std)
+    test_data = np.loadtxt("./TP1_test.tsv", delimiter="\t")
+    standardize_and_shuffle(test_data, mean, std)
+    return train_data, test_data
 
 
-def load_data(file_name):
-    data = np.loadtxt(file_name, delimiter="\t")
-    data[:, :-1] = standardize(data[:, :-1])
+def standardize_and_shuffle(data, mean, std):
+    data[:, :-1] = standardize(data[:, :-1], mean, std)
     np.random.shuffle(data)
-    return data
+
+
+def standardize(data, mean, std):
+    return (data - mean) / std
 
 
 def cross_validation(nb):
@@ -42,8 +51,7 @@ def approximate_normal_test(test_error):
 
 
 if __name__ == '__main__':
-    test = load_data("./TP1_test.tsv")
-    train = load_data("./TP1_train.tsv")
+    train, test = load_data()
 
     folds = 5
 
