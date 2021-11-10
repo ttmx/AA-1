@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.neighbors import KernelDensity
+from sklearn.metrics import accuracy_score
 
 
 class KernelDensityNB:
@@ -27,3 +28,6 @@ class KernelDensityNB:
             posteriors[idx] = self._priors[idx] + posterior
 
         return self._classes[np.argmax(posteriors)]
+
+    def score(self, X, y):
+        return accuracy_score(y, self.predict(X))
