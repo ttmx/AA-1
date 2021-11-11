@@ -9,8 +9,8 @@ from sklearn.model_selection import StratifiedKFold
 def load_data():
     train_data = np.loadtxt("./TP1_train.tsv", delimiter="\t")
     data_ = train_data[:, :-1]
-    mean = data_.mean()
-    std = data_.std()
+    mean = data_.mean(axis=0)
+    std = data_.std(axis=0)
     standardize_and_shuffle(train_data, mean, std)
     test_data = np.loadtxt("./TP1_test.tsv", delimiter="\t")
     standardize_and_shuffle(test_data, mean, std)
