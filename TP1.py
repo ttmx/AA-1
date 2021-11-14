@@ -60,6 +60,24 @@ def approximate_normal_test(test_error):
     return test_error, relative_margin
 
 
+def mcnemar_test_with(classifier_1, classifier_2, test_set):
+    c1_predictions = classifier_1.predict(test_set[:, :-1])
+    c2_predictions = classifier_2.predict(test_set[:, :-1])
+    correct_predictions = test_set[:, -1]
+    e01 = e10 = 0
+    for c1p, c2p, cp in np.array([c1_predictions, c2_predictions, correct_predictions]).transpose():
+        if (not np.isclose(c1p, cp)) and np.isclose(c2p, cp):
+            e01 += 1
+        elif (not np.isclose(c2p, cp)) and np.isclose(c1p, cp):
+            e10 += 1
+
+    return mcnemar_test(e01, e10)
+
+
+def mcnemar_test(e01, e10):
+    return (math.fabs(e01 - e10) - 1) ** 2 / (e01 + e10)
+
+
 def gen_plot(data, filename, x_label, title):
     plt.figure()
     plt.plot(data[:, 0], data[:, 1], label="Training Error")
@@ -98,12 +116,25 @@ if __name__ == '__main__':
 
     [best_gamma, _, min_error] = min(svm_data, key=operator.itemgetter(2))
     print(f"SVM validation error: {min_error:.4f} with gamma: {best_gamma:.1f}")
+    print()
 
-    K_error, K_margin = approximate_normal_test(fit_and_score(KernelDensityNB(best_bandwidth), train, test))
+    kernel_density_nb = KernelDensityNB(best_bandwidth)
+    K_error, K_margin = approximate_normal_test(fit_and_score(kernel_density_nb, train, test))
     print(f"Kernel Density test error: {K_error:.4f}% +- {K_margin:.4f}% with bandwidth: {best_bandwidth:.2f}")
 
-    G_error, G_margin = approximate_normal_test(fit_and_score(GaussianNB(), train, test))
+    gaussian_nb = GaussianNB()
+    G_error, G_margin = approximate_normal_test(fit_and_score(gaussian_nb, train, test))
     print(f"Gaussian test error: {G_error:.4f}% +- {G_margin:.4f}%")
 
-    SVM_error, SVM_margin = approximate_normal_test(fit_and_score(SVC(gamma=best_gamma, kernel="rbf"), train, test))
+    svm = SVC(gamma=best_gamma, kernel="rbf")
+    SVM_error, SVM_margin = approximate_normal_test(fit_and_score(svm, train, test))
     print(f"SVM test error: {SVM_error:.4f}% +- {SVM_margin:.4f}% with gamma: {best_gamma:.1f}")
+    print()
+
+    k_g = mcnemar_test_with(kernel_density_nb, gaussian_nb, test)
+    k_svm = mcnemar_test_with(kernel_density_nb, svm, test)
+    g_svm = mcnemar_test_with(gaussian_nb, svm, test)
+
+    print(f"Kernel Density vs Gaussian: {k_g:.2f}")
+    print(f"Kernel Density vs SVM: {k_svm:.2f}")
+    print(f"Gaussian vs SVM: {g_svm:.2f}")
