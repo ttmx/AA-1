@@ -88,22 +88,22 @@ if __name__ == '__main__':
     gen_plot(np.array(k_data), "NB.png", "Bandwidth", "NB with KDE")
 
     [best_bandwidth, min_error, _] = min(k_data, key=operator.itemgetter(2))
-    print(f"Kernel Density validation error: {min_error} with bandwidth: {best_bandwidth}")
+    print(f"Kernel Density validation error: {min_error:.4f} with bandwidth: {best_bandwidth:.2f}")
 
-    print(f"Gaussian validation error: {cross_validation(GaussianNB())[1]}")
+    print(f"Gaussian validation error: {cross_validation(GaussianNB())[1]:.4f}")
 
     svm_data = unpack_errors(([gamma, cross_validation(SVC(gamma=gamma, kernel="rbf"))]
                               for gamma in np.linspace(0.2, 6, 30)))
     gen_plot(np.array(svm_data), "SVM.png", "Gamma", "SVM")
 
     [best_gamma, min_error, _] = min(svm_data, key=operator.itemgetter(2))
-    print(f"SVM validation error: {min_error} with gamma: {best_gamma}")
+    print(f"SVM validation error: {min_error:.4f} with gamma: {best_gamma:.1f}")
 
     K_error, K_margin = approximate_normal_test(fit_and_score(KernelDensityNB(best_bandwidth), train, test))
-    print(f"Kernel Density test error: {K_error}% +- {K_margin}% with bandwidth: {best_bandwidth}")
+    print(f"Kernel Density test error: {K_error:.4f}% +- {K_margin:.4f}% with bandwidth: {best_bandwidth:.2f}")
 
     G_error, G_margin = approximate_normal_test(fit_and_score(GaussianNB(), train, test))
-    print(f"Gaussian test error: {G_error}% +- {G_margin}%")
+    print(f"Gaussian test error: {G_error:.4f}% +- {G_margin:.4f}%")
 
     SVM_error, SVM_margin = approximate_normal_test(fit_and_score(SVC(gamma=best_gamma, kernel="rbf"), train, test))
-    print(f"SVM test error: {SVM_error}% +- {SVM_margin}% with gamma: {best_gamma}")
+    print(f"SVM test error: {SVM_error:.4f}% +- {SVM_margin:.4f}% with gamma: {best_gamma:.1f}")
