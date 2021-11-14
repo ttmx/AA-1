@@ -75,7 +75,7 @@ def gen_plot(data, filename, x_label, title):
 
 
 def unpack_errors(packed):
-    return [[bandwidth, v_error, t_error] for bandwidth, (v_error, t_error) in packed]
+    return [[bandwidth, t_error, v_error] for bandwidth, (t_error, v_error) in packed]
 
 
 if __name__ == '__main__':
@@ -87,7 +87,7 @@ if __name__ == '__main__':
                             for bandwidth in np.linspace(0.02, 0.6, 30)))
     gen_plot(np.array(k_data), "NB.png", "Bandwidth", "NB with KDE")
 
-    [best_bandwidth, min_error, _] = min(k_data, key=operator.itemgetter(2))
+    [best_bandwidth, _, min_error] = min(k_data, key=operator.itemgetter(2))
     print(f"Kernel Density validation error: {min_error:.4f} with bandwidth: {best_bandwidth:.2f}")
 
     print(f"Gaussian validation error: {cross_validation(GaussianNB())[1]:.4f}")
@@ -96,7 +96,7 @@ if __name__ == '__main__':
                               for gamma in np.linspace(0.2, 6, 30)))
     gen_plot(np.array(svm_data), "SVM.png", "Gamma", "SVM")
 
-    [best_gamma, min_error, _] = min(svm_data, key=operator.itemgetter(2))
+    [best_gamma, _, min_error] = min(svm_data, key=operator.itemgetter(2))
     print(f"SVM validation error: {min_error:.4f} with gamma: {best_gamma:.1f}")
 
     K_error, K_margin = approximate_normal_test(fit_and_score(KernelDensityNB(best_bandwidth), train, test))
