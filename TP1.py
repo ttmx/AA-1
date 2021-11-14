@@ -56,8 +56,7 @@ def fit_and_score(nb, fit, score_set):
 def approximate_normal_test(test_error):
     sigma = math.sqrt(test.size * test_error * (1 - test_error))
     absolute_margin = 1.96 * sigma  # 0.95 confidence interval
-    relative_margin = absolute_margin / test.size
-    return test_error, relative_margin
+    return test_error * test.shape[0], absolute_margin
 
 
 def mcnemar_test_with(classifier_1, classifier_2, test_set):
@@ -96,6 +95,10 @@ def unpack_errors(packed):
     return [[parameter, t_error, v_error] for parameter, (t_error, v_error) in packed]
 
 
+def mcnemar_string(test_score):
+    return f"{'same' if test_score <= 3.84 else 'different'} performance"  # 0.95 confidence
+
+
 if __name__ == '__main__':
     train, test = load_data()
 
@@ -120,24 +123,24 @@ if __name__ == '__main__':
 
     kernel_density_nb = KernelDensityNB(best_bandwidth)
     K_error, K_margin = approximate_normal_test(fit_and_score(kernel_density_nb, train, test))
-    print(f"Kernel Density test error: {K_error:.4f}% +- {K_margin:.4f}% with bandwidth: {best_bandwidth:.2f}")
+    print(f"Kernel Density test error: {K_error:.0f} ± {K_margin:.4f} with bandwidth: {best_bandwidth:.2f}")
 
     gaussian_nb = GaussianNB()
     G_error, G_margin = approximate_normal_test(fit_and_score(gaussian_nb, train, test))
-    print(f"Gaussian test error: {G_error:.4f}% +- {G_margin:.4f}%")
+    print(f"Gaussian test error: {G_error:.0f} ± {G_margin:.4f}")
 
     svm = SVC(gamma=best_gamma, kernel="rbf")
     SVM_error, SVM_margin = approximate_normal_test(fit_and_score(svm, train, test))
-    print(f"SVM test error: {SVM_error:.4f}% +- {SVM_margin:.4f}% with gamma: {best_gamma:.1f}")
+    print(f"SVM test error: {SVM_error:.0f} ± {SVM_margin:.4f} with gamma: {best_gamma:.1f}")
     print()
 
     k_g = mcnemar_test_with(kernel_density_nb, gaussian_nb, test)
     k_svm = mcnemar_test_with(kernel_density_nb, svm, test)
     g_svm = mcnemar_test_with(gaussian_nb, svm, test)
 
-    print(f"Kernel Density vs Gaussian: {k_g:.2f}")
-    print(f"Kernel Density vs SVM: {k_svm:.2f}")
-    print(f"Gaussian vs SVM: {g_svm:.2f}")
+    print(f"Kernel Density vs Gaussian: {k_g:.2f} {mcnemar_string(k_g)}")
+    print(f"Kernel Density vs SVM: {k_svm:.2f} {mcnemar_string(k_svm)}")
+    print(f"Gaussian vs SVM: {g_svm:.2f} {mcnemar_string(g_svm)}")
     print()
 
     tuned_svm_data = ([gamma, C, cross_validation(SVC(gamma=gamma, C=C, kernel="rbf"))]
@@ -148,8 +151,8 @@ if __name__ == '__main__':
     [best_gamma, best_C, _, min_error] = min(tuned_svm_data, key=operator.itemgetter(3))
     tuned_svm = SVC(gamma=best_gamma, C=best_C, kernel="rbf")
     SVM_error, SVM_margin = approximate_normal_test(fit_and_score(tuned_svm, train, test))
-    print(f"SVM test error: {SVM_error:.4f}% +- {SVM_margin:.4f}% with gamma: {best_gamma:.1f} and C: {best_C}")
+    print(f"Tuned SVM test error: {SVM_error:.0f} ± {SVM_margin:.4f} with gamma: {best_gamma:.1f} and C: {best_C}")
     print()
 
     svm_tuned_svm = mcnemar_test_with(svm, tuned_svm, test)
-    print(f"SVM vs Tuned SVM: {svm_tuned_svm:.2f}")
+    print(f"SVM vs Tuned SVM: {svm_tuned_svm:.2f} {mcnemar_string(svm_tuned_svm)}")
