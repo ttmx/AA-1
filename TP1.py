@@ -150,8 +150,8 @@ if __name__ == '__main__':
 
     [best_gamma, best_C, _, min_error] = min(tuned_svm_data, key=operator.itemgetter(3))
     tuned_svm = SVC(gamma=best_gamma, C=best_C, kernel="rbf")
-    SVM_error, SVM_margin = approximate_normal_test(fit_and_score(tuned_svm, train, test))
-    print(f"Tuned SVM test error: {SVM_error:.0f} ± {SVM_margin:.4f} with gamma: {best_gamma:.1f} and C: {best_C}")
+    t_SVM_error, t_SVM_margin = approximate_normal_test(fit_and_score(tuned_svm, train, test))
+    print(f"Tuned SVM test error: {t_SVM_error:.0f} ± {t_SVM_margin:.4f} with gamma: {best_gamma:.1f} and C: {best_C}")
     print()
 
     svm_tuned_svm = mcnemar_test_with(svm, tuned_svm, test)
