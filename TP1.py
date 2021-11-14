@@ -93,7 +93,7 @@ def gen_plot(data, filename, x_label, title):
 
 
 def unpack_errors(packed):
-    return [[bandwidth, t_error, v_error] for bandwidth, (t_error, v_error) in packed]
+    return [[parameter, t_error, v_error] for parameter, (t_error, v_error) in packed]
 
 
 if __name__ == '__main__':
@@ -138,3 +138,18 @@ if __name__ == '__main__':
     print(f"Kernel Density vs Gaussian: {k_g:.2f}")
     print(f"Kernel Density vs SVM: {k_svm:.2f}")
     print(f"Gaussian vs SVM: {g_svm:.2f}")
+    print()
+
+    tuned_svm_data = ([gamma, C, cross_validation(SVC(gamma=gamma, C=C, kernel="rbf"))]
+                      for gamma in np.linspace(0.2, 6, 30)
+                      for C in np.logspace(-3, 3, 7))
+    tuned_svm_data = ([bandwidth, C, t_error, v_error] for bandwidth, C, (t_error, v_error) in tuned_svm_data)
+
+    [best_gamma, best_C, _, min_error] = min(tuned_svm_data, key=operator.itemgetter(3))
+    tuned_svm = SVC(gamma=best_gamma, C=best_C, kernel="rbf")
+    SVM_error, SVM_margin = approximate_normal_test(fit_and_score(tuned_svm, train, test))
+    print(f"SVM test error: {SVM_error:.4f}% +- {SVM_margin:.4f}% with gamma: {best_gamma:.1f} and C: {best_C}")
+    print()
+
+    svm_tuned_svm = mcnemar_test_with(svm, tuned_svm, test)
+    print(f"SVM vs Tuned SVM: {svm_tuned_svm:.2f}")
