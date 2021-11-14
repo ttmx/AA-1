@@ -18,16 +18,10 @@ class KernelDensityNB:
             self._kdes[idx] = KernelDensity(kernel=self.kernel, bandwidth=self.bandwidth).fit(X_of_class)
 
     def predict(self, X):
-        return [self._predict(x) for x in X]
+        all_scores = [self._priors[idx] + self._kdes[idx].score_samples(X)
+                      for idx, _ in enumerate(self._classes)]
 
-    def _predict(self, x):
-        posteriors = np.zeros(self._classes.size, dtype=np.float64)
-
-        for idx, c in enumerate(self._classes):
-            [posterior] = self._kdes[idx].score_samples([x])
-            posteriors[idx] = self._priors[idx] + posterior
-
-        return self._classes[np.argmax(posteriors)]
+        return [self._classes[best_class] for best_class in np.argmax(all_scores, axis=0)]
 
     def score(self, X, y):
         return accuracy_score(y, self.predict(X))
