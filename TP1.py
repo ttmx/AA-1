@@ -1,5 +1,7 @@
 import math
+import operator
 import numpy as np
+import matplotlib.pyplot as plt
 from KernelDensityNB import KernelDensityNB
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
@@ -27,20 +29,28 @@ def standardize(data, mean, std):
 
 
 def cross_validation(nb):
-    avg_error = 0
+    training_error = 0
+    validation_error = 0
     skf = StratifiedKFold(n_splits=folds)
     for train_i, validation_i in skf.split(train[:, :-1], train[:, -1]):
-        train_set = train[train_i]
-        validation_set = train[validation_i]
-        avg_error += fit_and_score(nb, train_set, validation_set)
-    avg_error /= folds
-    return avg_error
+        train_set, validation_set = train[train_i], train[validation_i]
+
+        nb.fit(train_set[:, :-1], train_set[:, -1])
+        training_error += error_for(nb, train_set)
+        validation_error += error_for(nb, validation_set)
+
+    training_error /= folds
+    validation_error /= folds
+    return training_error, validation_error
 
 
-def fit_and_score(nb, fit, score):
+def error_for(nb, score_set):
+    return 1 - nb.score(score_set[:, :-1], score_set[:, -1])
+
+
+def fit_and_score(nb, fit, score_set):
     nb.fit(fit[:, :-1], fit[:, -1])
-    error = 1 - nb.score(score[:, :-1], score[:, -1])
-    return error
+    return error_for(nb, score_set)
 
 
 def approximate_normal_test(test_error):
@@ -50,31 +60,43 @@ def approximate_normal_test(test_error):
     return test_error, relative_margin
 
 
+def gen_plot(data, filename, x_label, title):
+    plt.figure()
+    plt.plot(data[:, 0], data[:, 1], label="Training Error")
+    plt.plot(data[:, 0], data[:, 2], label="Validation Error")
+    plt.title(title)
+    plt.xticks(data[:, 0], rotation="vertical")
+    plt.xlabel(x_label)
+    plt.ylabel("Error (decimal)")
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(filename, dpi=300)
+    plt.show()
+
+
+def unpack_errors(packed):
+    return [[bandwidth, v_error, t_error] for bandwidth, (v_error, t_error) in packed]
+
+
 if __name__ == '__main__':
     train, test = load_data()
 
     folds = 5
 
-    min_error = 1
-    best_bandwidth = -1
-    for bandwidth in np.linspace(0.02, 6, 300):
-        error = cross_validation(KernelDensityNB(bandwidth))
-        if error < min_error:
-            min_error = error
-            best_bandwidth = bandwidth
+    k_data = unpack_errors(([bandwidth, cross_validation(KernelDensityNB(bandwidth))]
+                            for bandwidth in np.linspace(0.02, 0.6, 30)))
+    gen_plot(np.array(k_data), "NB.png", "Bandwidth", "NB with KDE")
 
+    [best_bandwidth, min_error, _] = min(k_data, key=operator.itemgetter(2))
     print(f"Kernel Density validation error: {min_error} with bandwidth: {best_bandwidth}")
 
-    print(f"Gaussian validation error: {cross_validation(GaussianNB())}")
+    print(f"Gaussian validation error: {cross_validation(GaussianNB())[1]}")
 
-    min_error = 1
-    best_gamma = -1
-    for gamma in np.linspace(0.2, 6, 30):
-        error = cross_validation(SVC(gamma=gamma, kernel="rbf"))
-        if error < min_error:
-            min_error = error
-            best_gamma = gamma
+    svm_data = unpack_errors(([gamma, cross_validation(SVC(gamma=gamma, kernel="rbf"))]
+                              for gamma in np.linspace(0.2, 6, 30)))
+    gen_plot(np.array(svm_data), "SVM.png", "Gamma", "SVM")
 
+    [best_gamma, min_error, _] = min(svm_data, key=operator.itemgetter(2))
     print(f"SVM validation error: {min_error} with gamma: {best_gamma}")
 
     K_error, K_margin = approximate_normal_test(fit_and_score(KernelDensityNB(best_bandwidth), train, test))
