@@ -54,7 +54,7 @@ def fit_and_score(nb, fit, score_set):
 
 
 def approximate_normal_test(test_error):
-    sigma = math.sqrt(test.size * test_error * (1 - test_error))
+    sigma = math.sqrt(test.shape[0] * test_error * (1 - test_error))
     absolute_margin = 1.96 * sigma  # 0.95 confidence interval
     return test_error * test.shape[0], absolute_margin
 

@@ -38,18 +38,18 @@ R8: Treinámos uma nova instância de cada classificador com os parâmetros otim
 
 Q9: Mostre os melhores valores dos parâmetros optimizados, a estimativa do erro verdadeiro de cada uma das hipóteses que obteve (o seu classificador e os dois fornecidos pela biblioteca), os intervalos do número esperado de erros dados pelo teste normal aproximado e os valores dos testes de McNemar e discuta o que pode concluir daí.
 R9: Teste normal aproximado:
-- NB com KDE (bandwidth: 0.26): 55 ± 31.7781
-- GaussianNB: 118 ± 45.2998
-- SVM (gamma: 1.6): 53 ± 31.2211
+- NB com KDE (bandwidth: 0.22): 56 ± 14.3342
+- GaussianNB: 118 ± 20.2587
+- SVM (gamma: 2.8): 50 ± 13.5786
 
 McNemar:
-- NB com KDE vs GaussianNB: 38.06
-- NB com KDE vs SVM: 0.12
-- GaussianNB vs SVM: 39.01
+- NB com KDE vs GaussianNB: 35.10
+- NB com KDE vs SVM: 3.12
+- GaussianNB vs SVM: 41.56
 
-Para os valores do teste de McNemar superiores a 3.84 podemos rejeitar com 95% de confiança a hipótese de que os classificadores têm o mesmo desempenho, o que, aliado aos resultados do teste normal aproximado nos permite concluir que o NB com KDE e SVM se ajustam aos dados de forma semelhante e que ambos são melhores do que o GaussianNB.
+Para os valores do teste de McNemar superiores a 3.84 podemos rejeitar com 95% de confiança a hipótese de que os classificadores têm o mesmo desempenho, o que, aliado aos resultados do teste normal aproximado (O intervalo de NB com KDE interseta com o de SVM e nenhum destes se interseta com o de GaussianNB) nos permite concluir que o NB com KDE e SVM se ajustam aos dados de forma semelhante e que ambos são melhores do que o GaussianNB.
 
 
 Q10: (Opcional) Mostre a estimativa do erro verdadeiro do classificador SVM optimizado (se fez a parte opcional do trabalho) e discuta se valeu a pena fazer essa optimização. Se não fez a parte opcional do trabalho deixe esta resposta em branco.
-R10: Com 52 ± 30.9381 de erro e 0.00 no teste de McNemar em relação ao SVM com C fixo a 1, o SVM otimizado não apresenta melhorias que façam valer a pena o tempo acrescido de treino.
+R10: Com 51 ± 13.7080 de erro e 0.00 no teste de McNemar em relação ao SVM com C fixo a 1, o SVM otimizado não apresenta melhorias que façam valer a pena o tempo acrescido de treino.
 
